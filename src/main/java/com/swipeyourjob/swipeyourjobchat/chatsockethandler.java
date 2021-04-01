@@ -13,6 +13,7 @@ public class chatsockethandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         webSocketSessionlist.add(session);
+        System.out.println("1");
     }
 
     @Override
