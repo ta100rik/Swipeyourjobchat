@@ -27,12 +27,21 @@ public class Room {
     }
     public boolean addUserList (int userid,WebSocketSession session){
         try{
-            this.userlist.add(userid);
-            this.sessionlist.add(session);
+            if(!this.userlist.contains(userid)){this.userlist.add(userid);}
+            if(!this.sessionlist.contains(session)){this.sessionlist.add(session);}
+
             return true;
         }catch (Exception e){
             return false;
         }
+    }
+
+    public List<WebSocketSession> getSessionlist() {
+        return sessionlist;
+    }
+
+    public void setSessionlist(List<WebSocketSession> sessionlist) {
+        this.sessionlist = sessionlist;
     }
 
     public void setRoomid(int roomid) {

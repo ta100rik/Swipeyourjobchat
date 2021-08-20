@@ -5,8 +5,10 @@ public class LoginRequest {
     public String action;
     public String jwt;
 
-    public LoginRequest(String action) {
+    public LoginRequest(String action,String jwt) {
         this.action = action;
+        String jwtToken = jwt.substring(7);
+        this.jwt = jwtToken;
     }
 
     public String getAction() {

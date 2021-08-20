@@ -56,7 +56,9 @@ public class BaseDaoConnectionPoolingMySQL {
 
     public Connection getConnection() {
         try {
+
             Connection connection = openConnections.get(openConnections.size() - 1);
+
             usedConnections.add(connection);
             openConnections.remove(connection);
             return connection;

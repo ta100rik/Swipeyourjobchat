@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RoomServices {
-    private final ChatDaoImpl chatImpl = new ChatDaoImpl();
+    private ChatDaoImpl chatImpl = new ChatDaoImpl();
     public List<Room> roomlist = new ArrayList();
     public void addSocketToRooms(int userid, WebSocketSession session){
         List<Room> rooms =  getUserConnectedRooms(userid);
@@ -18,10 +18,29 @@ public class RoomServices {
         }
 
     }
+    public Room getMessageRoom(int roomid,int userid){
+        Room currentroom = this.isRoomInList(roomid);
+
+        if (currentroom != null){
+            if(currentroom.getUserlist().contains(userid)){
+
+                return currentroom;
+            }
+        }
+        return null;
+    }
+    public boolean uploadMessage(int userid, String message, int roomid){
+        return chatImpl.addMessage(userid,message,roomid);
+    }
     private Room isRoomInList(int roomid){
         for (Room currentRoom : roomlist){
+
             if(currentRoom.getRoomid() == roomid){
+                System.out.println(roomid);
+                System.out.println(currentRoom.getRoomid());
                 return currentRoom;
+            }else {
+                System.out.println(currentRoom.getRoomid());
             }
         }
         return null;
@@ -35,7 +54,6 @@ public class RoomServices {
                   Room currentroom =  this.isRoomInList(row.getRoomid());
                   if(currentroom != null){
                       currentlist.add(currentroom);
-                      this.roomlist.add(currentroom);
                   }else{
                       Room newroom = new Room(row.getRoomid());
                       currentlist.add(newroom);
