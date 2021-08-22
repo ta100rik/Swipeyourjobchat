@@ -12,10 +12,10 @@ public class AuthenticationService {
     private Claims decodeJWT(String jwt) {
         //This line will throw an exception if it is not a signed JWS (as expected)
         try{
-
             Claims claims = Jwts.parser()
                     .setSigningKey(JWT_SECRET)
                     .parseClaimsJws(jwt).getBody();
+
             return claims;
         }catch (Exception e){
             System.out.println(e.getMessage());
@@ -26,6 +26,7 @@ public class AuthenticationService {
         return chatDao.getUserById(userid);
     }
     public int getUserid(String jwt){
+
         Claims claim = decodeJWT(jwt);
         if(claim == null){
             return 0;

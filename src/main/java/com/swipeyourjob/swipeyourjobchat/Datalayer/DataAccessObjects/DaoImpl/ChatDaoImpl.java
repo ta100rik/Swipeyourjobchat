@@ -6,6 +6,7 @@ import com.swipeyourjob.swipeyourjobchat.Domain.WebUser;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class ChatDaoImpl  extends BaseDaoMySQL {
         try{
             Connection conn = super.getConnection();
             String sql = "INSERT INTO chatmessages (chatmessage,roomid,userid) VALUES (?,?,?)";
-            PreparedStatement statement = conn.prepareStatement(sql);
+            PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             statement.setString(1,message);
             statement.setInt(2,roomid);
             statement.setInt(3,userid);
@@ -53,7 +54,6 @@ public class ChatDaoImpl  extends BaseDaoMySQL {
                 String LastName         = Result.getString("lastname");
                 String profilepicture   = Result.getString("profilepicture");
                 String Email            = Result.getString("email");
-
                 WebUser currentuser     = new WebUser(Firstname,LastName,profilepicture,Email);
                 return currentuser;
             }

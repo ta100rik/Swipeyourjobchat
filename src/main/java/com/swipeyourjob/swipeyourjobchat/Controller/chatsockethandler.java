@@ -17,10 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class chatsockethandler extends TextWebSocketHandler {
-    private final List<WebSocketSession> webSocketSessionlist = new ArrayList<>();
-    private final List<WebSocketSession> webSocketLogedInList = new ArrayList<>();
-    private final RoomServices roomServices = new RoomServices();
-    private final AuthenticationService authServices = new AuthenticationService();
+    private final List<WebSocketSession> webSocketSessionlist   = new ArrayList<>();
+    private final List<WebSocketSession> webSocketLogedInList   = new ArrayList<>();
+    private final RoomServices roomServices                     = new RoomServices();
+    private final AuthenticationService authServices            = new AuthenticationService();
 
     private final MessageHandler handler = new MessageHandler();
     @Override
@@ -29,62 +29,73 @@ public class chatsockethandler extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        LoginRequest action =  handler.MessageParser(message.getPayload());
-        boolean sendmessage = true;
-        /*
-            Methods:
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception{
+            LoginRequest action =  handler.MessageParser(message.getPayload());
+            boolean sendmessage = true;
+            /*
+                Methods:
 
-            Login
-            Send message
-        */
-        switch (action.getAction()){
-            case "Login":
-                    int userid = this.authServices.getUserid(action.getJwt()); // this will return 0 if the token is invalid
-                    if(userid != 0) {
-                        this.webSocketLogedInList.add(session);
-                        roomServices.addSocketToRooms(userid, session);
-                    }else{
-                        message = new TextMessage("Sorry that token isn't valid");
-                        session.sendMessage(message);
-                        sendmessage = false;
-                    }
-                break;
-            case "SendMessage":
-                    if(webSocketLogedInList.contains(session)){
-                        String textmessage = handler.getJsonObject(message.getPayload(),"message");
-                        int roomid = Integer.parseInt(handler.getJsonObject(message.getPayload(),"roomid"));
-                        int userid_current = this.authServices.getUserid(action.getJwt()); // this will return 0 if the token is invalid
-                        Room messsageroom = this.roomServices.getMessageRoom(roomid,userid_current);
-                        WebUser currentuser = this.authServices.getWebuserByUserid(userid_current);
-                        ChatMessageView messageclass = new ChatMessageView(textmessage,roomid,currentuser.getFirstName());
-
-                        if(messsageroom != null){
-                            this.roomServices.uploadMessage(userid_current,textmessage,roomid);
-                            for (WebSocketSession roomuser : messsageroom.getSessionlist()){
-                                if(roomuser != session){
-                                    Gson gson = new Gson();
-                                    TextMessage RESULT = new TextMessage(gson.toJson(messageclass));
-                                    roomuser.sendMessage(RESULT);
+                Login
+                Send message
+            */
+            switch (action.getAction()){
+                case "Login":
+                        int userid = this.authServices.getUserid(action.getJwt()); // this will return 0 if the token is invalid
+                        if(userid != 0) {
+                            this.webSocketLogedInList.add(session);
+                            roomServices.addSocketToRooms(userid, session);
+                        }else{
+                            message = new TextMessage("Sorry that token isn't valid");
+                            if(session.isOpen()){
+                                session.sendMessage(message);
+                            }
+                            sendmessage = false;
+                        }
+                    break;
+                case "SendMessage":
+                        if(webSocketLogedInList.contains(session)){
+                            String textmessage = handler.getJsonObject(message.getPayload(),"message");
+                            int roomid = Integer.parseInt(handler.getJsonObject(message.getPayload(),"roomid"));
+                            int userid_current = this.authServices.getUserid(action.getJwt()); // this will return 0 if the token is invalid
+                            Room messsageroom = this.roomServices.getMessageRoom(roomid,userid_current);
+                            WebUser currentuser = this.authServices.getWebuserByUserid(userid_current);
+                            ChatMessageView messageclass = new ChatMessageView(textmessage,roomid,currentuser.getFirstName());
+                            if(messsageroom != null){
+                                this.roomServices.uploadMessage(userid_current,textmessage,roomid);
+                                for (WebSocketSession roomuser : messsageroom.getSessionlist()){
+                                        Gson gson = new Gson();
+                                        TextMessage RESULT = new TextMessage(gson.toJson(messageclass));
+                                        if(roomuser.isOpen()){
+                                            roomuser.sendMessage(RESULT);
+                                        }
                                 }
                             }
+                        }else{
+                            message = new TextMessage("Sorry you are not logged in");
+                            if(session.isOpen()){
+                                session.sendMessage(message);
+                            }
+                            sendmessage = false;
                         }
-                    }else{
-                        message = new TextMessage("Sorry you are not logged in");
-                        session.sendMessage(message);
-                        sendmessage = false;
-                    }
-                break;
-            default:
-                sendmessage = false;
-        }
-        for (WebSocketSession cSession : this.webSocketSessionlist){
-               // System.out.println(cSession);
-        }
+                    break;
+                default:
+                    sendmessage = false;
+            }
+
+
+
+
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         webSocketSessionlist.remove(session);
+        webSocketLogedInList.remove(session);
+        if (session != null) {
+            session.close(status);
+        }
+
     }
+
+
 }
